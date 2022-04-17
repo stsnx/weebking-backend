@@ -33,7 +33,7 @@ router.put("/update/:id",verifyandAdmin,async (req,res)=>{
 router.delete("/delete/:id",verifyandAdmin,async (req,res)=>{
     try{
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        const title = deletedProduct._doc.title
+        const title = deletedProduct._doc.title;
         res.status(200).json(title+" has been deleted");
     }catch(err){
         res.status(500).json(err);
