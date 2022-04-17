@@ -48,10 +48,15 @@ router.get("/find/:id",verifyandAdmin,async (req,res)=>{
     }
 });
 router.get("/findall",verifyandAdmin,async (req,res)=>{
-    const query = req.query.new;
-    try{
-        const products = query ? await Product.find().sort({ _id: -1}).limit(5)
-        : await Product.find();
+  const qNew = req.query.new;
+  try {
+    let products;
+
+    if (qNew) {
+      products = await Product.find().sort({ price: -1 }).limit(10);
+    } else {
+      products = await Product.find();
+    }
         res.status(200).json(products);
     }catch(err){
         res.status(500).json(err);
