@@ -37,6 +37,7 @@ router.get("/find/:id",verifyandAdmin,async (req,res)=>{
         res.status(500).json(err);
     }
 });
+//find
 router.get("/findall",verifyandAdmin,async (req,res)=>{
     const query = req.query.new;
     try{
