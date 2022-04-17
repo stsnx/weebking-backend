@@ -1,0 +1,5 @@
+#dependencies
+.env
+/node_nodules
+package-lock.json
+package.json
