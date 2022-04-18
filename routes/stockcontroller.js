@@ -29,7 +29,8 @@ router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
             }
         if(h||l==0){
                 console.log("p");
-                //var newp = {productId:id,quantity:1};
+                var ID = req.params.id;
+                var newq = {productId:`${ID}`,quantity:1};
                 const updateP = await Product.findByIdAndUpdate(
                     req.params.id,
                     {
@@ -37,7 +38,14 @@ router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
                     },
                     {new:true}
                     ); 
-                console.log(updateP);
+                const updatedCart = await Cart.findOneAndUpdate(
+                    {userId:req.body.userId},{
+                        $push:{products:newq}
+                    },
+                    {new:true}
+                );
+                console.log(updatedCart);
+                
                 //console.log(newp);
                 //usercart.products.push(newp);
                 //console.log(usercart);
