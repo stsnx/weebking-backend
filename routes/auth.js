@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-// const Pended = require("../models/Pended");
+const Pended = require("../models/Pended");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 
@@ -15,6 +15,7 @@ router.post("/register",async(req,res)=>{
         adderss: req.body.address,
         avatar: req.body.avatar,
     });
+    
     try{
     const savedUser = await newUser.save();
     //res.status(201).json(savedUser);
@@ -25,12 +26,23 @@ router.post("/register",async(req,res)=>{
     });
     try{
         const savedCart = await newCart.save();
+       // res.status(200).json(savedCart);
         
-        res.status(200).json(savedCart);
     }catch(err){
         res.status(500).json(err);
     }
-
+    const newPended= new Pended({
+        userId : savedUser.id,
+        products: [],
+        status:"pending",
+        });
+        try{
+        const savedPended = await newPended.save();
+        res.status(200).json(savedPended);
+    }
+        catch(err){
+            res.status(500).json(err);
+        }  
     }catch(err){
         res.status(500).json(err);
     }
