@@ -6,22 +6,22 @@ const Cart = require("../models/Cart");
 const Pended = require("../models/Pended");
 //add to cart
 router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
-    console.log("addtocart");
+   // console.log("addtocart");
     try{
-        console.log("Pp");
-        console.log("user = "+req.body.userId);
+     //   console.log("Pp");
+     //   console.log("user = "+req.body.userId);
         const usercart = await Cart.findOne({userId:req.body.userId});
         const currentamount = await Product.findById(req.params.id);
         var cm = currentamount._doc.amount;
         var l = usercart._doc.products.length;
         var userbuy = req.body.quantity;
-        console.log(usercart);
+       // console.log(usercart);
         var h = true; 
         if( userbuy <=cm){
-            console.log("l="+l);
+         //   console.log("l="+l);
             
             for(var i=0;i<l;i++){
-                console.log("pp");
+          //      console.log("pp");
                 console.log(usercart._doc);
                 /*if(usercart._doc.products[i].quantity==0){
                     
@@ -34,7 +34,7 @@ router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
                 }
             }
             if(h||l==0){
-                console.log("p");
+         //       console.log("p");
                 var ID = req.params.id;
                 var newq = {productId:`${ID}`,quantity:userbuy};
                 const updatedCart = await Cart.findOneAndUpdate(
@@ -56,9 +56,9 @@ router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
 });
 //add to pended
 router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
-    console.log("addtopended");
+    //console.log("addtopended");
     try{
-        console.log(req.body.userId)
+        //console.log(req.body.userId)
         const usercart = await Cart.findOne({userId:req.body.userId});
         const userpended = await Pended.findOne({userId:req.body.userId});
         const currentamount = await Product.findById(req.params.id);
@@ -68,25 +68,38 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
         var userbuy = req.body.quantity;
         var hp = true;
         var hc = true;
-    
+        
         if( userbuy <=cm){
-            console.log("l="+lc);
+        //    console.log("l="+lc);
             //console.log("l="+l);
             for(var i=0;i<lc;i++){
                 if(usercart._doc.products[i].productId===req.params.id){
+                    const checkProduct = await Product.findById(req.params.id);
+                    //console.log(checkProduct._doc.cat);
+                    
                     usercart._doc.products[i].quantity-=userbuy;
+                    
                     hc = false;
-                    const updateP = await Product.findByIdAndUpdate(
+                    if (checkProduct._doc.cat.indexOf("pre")>-1){
+                        const updateP = await Product.findByIdAndUpdate(
                         req.params.id,
-                        {amount:cm-userbuy},
+                        {amount:cm+userbuy},
                         {new:true}
                         ); 
+                    }
+                    else if(checkProduct._doc.cat.indexOf("stock")>-1){
+                        const updateP = await Product.findByIdAndUpdate(
+                            req.params.id,
+                            {amount:cm-userbuy},
+                            {new:true}
+                            ); 
+                    }
                     usercart.save();
                     break;
                 }
             }
             if(hc||lc==0){
-                console.log("p");
+        //        console.log("p");
                 var ID = req.params.id;
                 var newq = {productId:`${ID}`,quantity:userbuy};
                 const updateP = await Product.findByIdAndUpdate(
@@ -101,7 +114,7 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
                     );
             }
             
-            console.log("p");
+        //    console.log("p");
             var ID = req.params.id;
             var newq = {productId:`${ID}`,quantity:userbuy};
             const updatedPended = await Pended.findOneAndUpdate(
@@ -109,7 +122,7 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
                 {$push:{products:newq}},
                 {new:true}
                 );
-            console.log("clearzero");
+          //  console.log("clearzero");
             await Cart.updateOne(
                 {userId:req.body.userId},{
                     $pull:{'products':{
