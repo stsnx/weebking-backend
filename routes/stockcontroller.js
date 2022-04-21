@@ -19,15 +19,18 @@ router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
         var h = true; 
         if( userbuy <=cm){
             console.log("l="+l);
+            
             for(var i=0;i<l;i++){
                 console.log("pp");
                 console.log(usercart._doc);
+                /*if(usercart._doc.products[i].quantity==0){
+                    
+                }*/
                 if(usercart._doc.products[i].productId===req.params.id){
                     console.log("found"+usercart._doc.products[i].productId);
                     usercart._doc.products[i].quantity+=userbuy;
                     h = false; 
                     usercart.save();
-                    break;
                 }
             }
             if(h||l==0){
@@ -41,6 +44,7 @@ router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
                     {new:true}
                 );
             }
+           
         }
         else{
             console.log("over stock");
@@ -105,7 +109,14 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
                 {$push:{products:newq}},
                 {new:true}
                 );
-            
+            console.log("clearzero");
+            await Cart.updateOne(
+                {userId:req.body.userId},{
+                    $pull:{'products':{
+                        quantity:0}}
+                },
+                {new:true}
+            );
         }
         else{
             console.log("over stock");
