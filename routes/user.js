@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const {verifyToken, verifyandauthen,verifyandAdmin} = require("./verifyToken");
+//P
 router.put("/:id",verifyandauthen,async(req,res)=>{
     if(req.user.password){
         req.body.password = CryptoJS.AES.encrypt(
