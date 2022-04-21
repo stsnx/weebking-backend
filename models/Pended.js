@@ -14,6 +14,7 @@ const PendedSchema = new mongoose.Schema(
             },
             status :{
                 type:String,
+                default:"pending",
                 required:true,
             }
         },

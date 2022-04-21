@@ -3,69 +3,114 @@ const User = require("../models/User");
 const {verifyToken, verifyandauthen,verifyandAdmin, verifytoken} = require("./verifyToken");
 const Product = require("../models/Product");
 const Cart = require("../models/Cart");
-
-router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
+const Pended = require("../models/Pended");
+//add to cart
+router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
+    console.log("addtocart");
     try{
-        const usercart = await Cart.findOne(req.params.userId);
+        console.log("Pp");
+        console.log("user = "+req.body.userId);
+        const usercart = await Cart.findOne({userId:req.body.userId});
         const currentamount = await Product.findById(req.params.id);
         var cm = currentamount._doc.amount;
         var l = usercart._doc.products.length;
         var userbuy = req.body.quantity;
-        console.log(cm);
+        console.log(usercart);
+        var h = true; 
         if( userbuy <=cm){
             console.log("l="+l);
-            var h = true;
             for(var i=0;i<l;i++){
                 console.log("pp");
                 console.log(usercart._doc);
                 if(usercart._doc.products[i].productId===req.params.id){
-                    console.log("pass");
-                    console.log(usercart._doc.products[i].quantity);
+                    console.log("found"+usercart._doc.products[i].productId);
                     usercart._doc.products[i].quantity+=userbuy;
-                    console.log(usercart._doc.products[i].quantity);
-                    console.log(usercart._doc.products);
-                    h = false;
-                    const updateP = await Product.findByIdAndUpdate(
-                        req.params.id,
-                        {
-                            amount:cm-userbuy
-                        },
-                        {new:true}
-                        ); 
+                    h = false; 
                     usercart.save();
                     break;
                 }
             }
-
-        if(h||l==0){
+            if(h||l==0){
                 console.log("p");
                 var ID = req.params.id;
-                var newq = {productId:`${ID}`,quantity:1};
-                const updateP = await Product.findByIdAndUpdate(
-                    req.params.id,
-                    {
-                        amount:cm-userbuy
-                    },
-                    {new:true}
-                    ); 
+                var newq = {productId:`${ID}`,quantity:userbuy};
                 const updatedCart = await Cart.findOneAndUpdate(
                     {userId:req.body.userId},{
                         $push:{products:newq}
                     },
                     {new:true}
                 );
-                //console.log(updatedCart.json);
-                
-                //console.log(newp);
-                //usercart.products.push(newp);
-                //console.log(usercart);
-                //usercart.save();
             }
         }
         else{
             console.log("over stock");
         }
         res.status(200).json(l);
+    }catch(err){
+        res.status(502).json(err);
+    }
+});
+//add to pended
+router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
+    console.log("addtopended");
+    try{
+        console.log(req.body.userId)
+        const usercart = await Cart.findOne({userId:req.body.userId});
+        const userpended = await Pended.findOne({userId:req.body.userId});
+        const currentamount = await Product.findById(req.params.id);
+        var cm = currentamount._doc.amount;
+        var lp = userpended._doc.products.length;
+        var lc = usercart._doc.products.length;
+        var userbuy = req.body.quantity;
+        var hp = true;
+        var hc = true;
+    
+        if( userbuy <=cm){
+            console.log("l="+lc);
+            //console.log("l="+l);
+            for(var i=0;i<lc;i++){
+                if(usercart._doc.products[i].productId===req.params.id){
+                    usercart._doc.products[i].quantity-=userbuy;
+                    hc = false;
+                    const updateP = await Product.findByIdAndUpdate(
+                        req.params.id,
+                        {amount:cm-userbuy},
+                        {new:true}
+                        ); 
+                    usercart.save();
+                    break;
+                }
+            }
+            if(hc||lc==0){
+                console.log("p");
+                var ID = req.params.id;
+                var newq = {productId:`${ID}`,quantity:userbuy};
+                const updateP = await Product.findByIdAndUpdate(
+                    req.params.id,
+                    {amount:cm-userbuy},
+                    {new:true}
+                ); 
+                const updatedCart = await Cart.findOneAndUpdate(
+                    {userId:req.body.userId},
+                    {$push:{products:newq}},
+                    {new:true}
+                    );
+            }
+            
+            console.log("p");
+            var ID = req.params.id;
+            var newq = {productId:`${ID}`,quantity:userbuy};
+            const updatedPended = await Pended.findOneAndUpdate(
+                {userId:req.body.userId},
+                {$push:{products:newq}},
+                {new:true}
+                );
+            
+        }
+        else{
+            console.log("over stock");
+        }
+        res.status(200).json(userpended);
     }catch(err){
         res.status(502).json(err);
     }
