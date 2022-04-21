@@ -4,14 +4,15 @@ const {verifyToken, verifyandauthen,verifyandAdmin, verifytoken} = require("./ve
 const Product = require("../models/Product");
 const Cart = require("../models/Cart");
 
-router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
+router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
     try{
         const usercart = await Cart.findOne(req.params.userId);
         const currentamount = await Product.findById(req.params.id);
         var cm = currentamount._doc.amount;
         var l = usercart._doc.products.length;
+        var userbuy = req.body.quantity;
         console.log(cm);
-        if( 1 <=cm){
+        if( userbuy <=cm){
             console.log("l="+l);
             var h = true;
             for(var i=0;i<l;i++){
@@ -20,13 +21,14 @@ router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
                 if(usercart._doc.products[i].productId===req.params.id){
                     console.log("pass");
                     console.log(usercart._doc.products[i].quantity);
-                    usercart._doc.products[i].quantity+=1;
+                    usercart._doc.products[i].quantity+=userbuy;
                     console.log(usercart._doc.products[i].quantity);
+                    console.log(usercart._doc.products);
                     h = false;
                     const updateP = await Product.findByIdAndUpdate(
                         req.params.id,
                         {
-                            amount:cm-1
+                            amount:cm-userbuy
                         },
                         {new:true}
                         ); 
@@ -42,7 +44,7 @@ router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
                 const updateP = await Product.findByIdAndUpdate(
                     req.params.id,
                     {
-                        amount:cm-1
+                        amount:cm-userbuy
                     },
                     {new:true}
                     ); 
@@ -59,6 +61,9 @@ router.put("/addtocart/:id",verifytoken,async (req,res,next)=>{
                 //console.log(usercart);
                 //usercart.save();
             }
+        }
+        else{
+            console.log("over stock");
         }
         res.status(200).json(l);
     }catch(err){

@@ -10,6 +10,13 @@ const UserSchema = new mongoose.Schema(
         type:Boolean,
         default:false,
         },
+    address: {
+        type:String,require: true,
+    },
+    avatar:{
+        type:String,
+        default:"None",
+    },
     },
     { timestamps:true }
 );
