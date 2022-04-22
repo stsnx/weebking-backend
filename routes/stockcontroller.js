@@ -140,4 +140,23 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
     }
     
 });
+//setstatus
+router.put("/setstatus/:id",verifyandAdmin,async(req,res)=>{
+    try{
+        const updatedStatus = await Pended.findByIdAndUpdate(req.params.id);
+        //console.log(updatedStatus._doc.products);
+        for(var i=0;i<updatedStatus._doc.products.length;i++){
+            console.log(updatedStatus._doc.products[i].id);
+            if(updatedStatus._doc.products[i].id===req.body.pendedid){
+                console.log("found");
+                updatedStatus._doc.products[i].status = req.body.status;
+                break;
+            }
+        }
+    updatedStatus.save();
+    res.status(200).json(updatedStatus);
+    }catch(err){
+        res.status(500).json(err);
+    }
+});
 module.exports = router;
