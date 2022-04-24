@@ -48,6 +48,42 @@ router.put("/addtocart/:id",verifyandauthen,async (req,res)=>{
     }
 });
 //add to pended product
+router.put("/removefromcart/:id",verifyandauthen,async (req,res)=>{
+    try{
+        const usercart = await Cart.findOne({userId:req.body.userId});
+        var cartamo = 0;
+        for(let i of usercart.products){
+            if(i.productId===req.params.id){
+                cartamo = i.quantity;
+                break;
+            }
+        }
+        var lc = usercart._doc.products.length;
+        var userbuy = req.body.quantity;
+        if( userbuy <=cartamo){
+            for(var i=0;i<lc;i++){
+                if(usercart._doc.products[i].productId===req.params.id){
+                    usercart._doc.products[i].quantity-=userbuy;
+                    usercart.save();
+                    break;
+                }
+            }
+            
+        }
+        await Cart.updateOne(
+                {userId:req.body.userId},{
+                    $pull:{'products':{
+                        quantity:0}}
+                },
+                {new:true}
+            );
+        const usercartAf = await Cart.findOne({userId:req.body.userId});
+        res.status(200).json(usercartAf);
+    }catch(err){
+        res.status(502).json(err);
+    }
+});
+//add to pended product
 router.put("/addtopended/:id",verifyandauthen,async (req,res)=>{
     try{
         const usercart = await Cart.findOne({userId:req.body.userId});
