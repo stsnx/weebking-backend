@@ -4,7 +4,7 @@ const Cart = require("../models/Cart");
 const Pended = require("../models/Pended");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
-
+//register
 router.post("/register",async(req,res)=>{
     const newUser = new User({
         username: req.body.username,
@@ -15,39 +15,27 @@ router.post("/register",async(req,res)=>{
         adderss: req.body.address,
         avatar: req.body.avatar,
     });
-    
     try{
     const savedUser = await newUser.save();
-    //res.status(201).json(savedUser);
-    console.log(savedUser.id);
     const newCart= new Cart({
         userId : savedUser.id,
         products: [],
     });
-    try{
-        const savedCart = await newCart.save();
-       // res.status(200).json(savedCart);
-        
-    }catch(err){
-        res.status(500).json(err);
-    }
-    const newPended= new Pended({
+    const newPend= new Pended({
         userId : savedUser.id,
         products: [],
-        status:"pending",
-        });
-        try{
-        const savedPended = await newPended.save();
-        res.status(200).json(savedPended);
-    }
-        catch(err){
-            res.status(500).json(err);
-        }  
+    });
+    try{
+        await newCart.save();
+        await newPend.save(); 
     }catch(err){
         res.status(500).json(err);
     }
-    
+    }catch(err){
+        res.status(500).json(err);
+    }
 });
+//login
 router.post("/login", async(req,res)=>{
    try{
       const user = await User.findOne({username:req.body.username});
