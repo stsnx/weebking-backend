@@ -5,90 +5,89 @@ const Product = require("../models/Product");
 const Cart = require("../models/Cart");
 const Pended = require("../models/Pended");
 //add to cart
-router.put("/addtocart/:id",verifyandauthen,async (req,res,next)=>{
-   // console.log("addtocart");
+router.put("/addtocart/:id",verifyandauthen,async (req,res)=>{
     try{
-     //   console.log("Pp");
-     //   console.log("user = "+req.body.userId);
         const usercart = await Cart.findOne({userId:req.body.userId});
         const currentamount = await Product.findById(req.params.id);
         var cm = currentamount._doc.amount;
         var l = usercart._doc.products.length;
         var userbuy = req.body.quantity;
-       // console.log(usercart);
         var h = true; 
         if( userbuy <=cm){
-         //   console.log("l="+l);
-            
             for(var i=0;i<l;i++){
-          //      console.log("pp");
-                console.log(usercart._doc);
-                /*if(usercart._doc.products[i].quantity==0){
-                    
-                }*/
                 if(usercart._doc.products[i].productId===req.params.id){
-                    console.log("found"+usercart._doc.products[i].productId);
-                    usercart._doc.products[i].quantity+=userbuy;
-                    h = false; 
-                    usercart.save();
+                    if(usercart._doc.products[i].quantity+userbuy<=cm){
+                        usercart._doc.products[i].quantity+=userbuy;
+                        h = false; 
+                        usercart.save();
+                        break;
+                    }
+                    
                 }
             }
             if(h||l==0){
-         //       console.log("p");
                 var ID = req.params.id;
                 var newq = {productId:`${ID}`,quantity:userbuy};
-                const updatedCart = await Cart.findOneAndUpdate(
+                await Cart.findOneAndUpdate(
                     {userId:req.body.userId},{
                         $push:{products:newq}
                     },
                     {new:true}
                 );
+                usercart.save();
             }
            
         }
         else{
             console.log("over stock");
         }
-        res.status(200).json(l);
+        const usercartAf = await Cart.findOne({userId:req.body.userId});
+        res.status(200).json(usercartAf);
     }catch(err){
         res.status(502).json(err);
     }
 });
-//add to pended
-router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
-    //console.log("addtopended");
+//add to pended product
+router.put("/addtopended/:id",verifyandauthen,async (req,res)=>{
     try{
-        //console.log(req.body.userId)
         const usercart = await Cart.findOne({userId:req.body.userId});
         const userpended = await Pended.findOne({userId:req.body.userId});
         const currentamount = await Product.findById(req.params.id);
         var cm = currentamount._doc.amount;
-        var lp = userpended._doc.products.length;
+        var ccat = currentamount._doc.cat[0];
+        var cartamo = 0;
+        var checkPre = false;
+        for(let i of usercart.products){
+            if(i.productId===req.params.id){
+                cartamo = i.quantity;
+                break;
+            }
+        }
         var lc = usercart._doc.products.length;
         var userbuy = req.body.quantity;
-        var hp = true;
         var hc = true;
+        if(ccat==="pre"||userbuy<=cartamo){
+            checkPre =true; 
+        }
+
+       // var lp = userpended._doc.products.length;
+        //var hp = true;
         
-        if( userbuy <=cm){
-        //    console.log("l="+lc);
-            //console.log("l="+l);
+        if( userbuy <=cm&&checkPre){
             for(var i=0;i<lc;i++){
                 if(usercart._doc.products[i].productId===req.params.id){
                     const checkProduct = await Product.findById(req.params.id);
-                    //console.log(checkProduct._doc.cat);
-                    
                     usercart._doc.products[i].quantity-=userbuy;
-                    
                     hc = false;
                     if (checkProduct._doc.cat.indexOf("pre")>-1){
-                        const updateP = await Product.findByIdAndUpdate(
+                        await Product.findByIdAndUpdate(
                         req.params.id,
                         {amount:cm+userbuy},
                         {new:true}
                         ); 
                     }
                     else if(checkProduct._doc.cat.indexOf("stock")>-1){
-                        const updateP = await Product.findByIdAndUpdate(
+                        await Product.findByIdAndUpdate(
                             req.params.id,
                             {amount:cm-userbuy},
                             {new:true}
@@ -99,30 +98,26 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
                 }
             }
             if(hc||lc==0){
-        //        console.log("p");
                 var ID = req.params.id;
                 var newq = {productId:`${ID}`,quantity:userbuy};
-                const updateP = await Product.findByIdAndUpdate(
+                await Product.findByIdAndUpdate(
                     req.params.id,
                     {amount:cm-userbuy},
                     {new:true}
                 ); 
-                const updatedCart = await Cart.findOneAndUpdate(
+                await Cart.findOneAndUpdate(
                     {userId:req.body.userId},
                     {$push:{products:newq}},
                     {new:true}
                     );
             }
-            
-        //    console.log("p");
             var ID = req.params.id;
             var newq = {productId:`${ID}`,quantity:userbuy};
-            const updatedPended = await Pended.findOneAndUpdate(
+            await Pended.findOneAndUpdate(
                 {userId:req.body.userId},
                 {$push:{products:newq}},
                 {new:true}
                 );
-          //  console.log("clearzero");
             await Cart.updateOne(
                 {userId:req.body.userId},{
                     $pull:{'products':{
@@ -131,25 +126,20 @@ router.put("/addtopended/:id",verifyandauthen,async (req,res,next)=>{
                 {new:true}
             );
         }
-        else{
-            console.log("over stock");
-        }
-        res.status(200).json(userpended);
+        const userpendedAf = await Pended.findOne({userId:req.body.userId});
+        res.status(200).json(userpendedAf);
     }catch(err){
         res.status(502).json(err);
     }
-    
 });
 //setstatus
 router.put("/setstatus/:id",verifyandAdmin,async(req,res)=>{
+    
     try{
         const updatedStatus = await Pended.findByIdAndUpdate(req.params.id);
-        //console.log(updatedStatus._doc.products);
-        for(var i=0;i<updatedStatus._doc.products.length;i++){
-            console.log(updatedStatus._doc.products[i].id);
-            if(updatedStatus._doc.products[i].id===req.body.pendedid){
-                console.log("found");
-                updatedStatus._doc.products[i].status = req.body.status;
+        for(let i of updatedStatus._doc.products){      
+            if(i.id===req.body.pendedid){
+                i.status = req.body.status;
                 break;
             }
         }

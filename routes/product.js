@@ -3,7 +3,7 @@ const User = require("../models/User");
 const { verifyandAdmin, verifyandauthen, verifytoken } = require("./verifyToken");
 
 const router = require("express").Router();
-
+//add product admin only
 router.post("/add",verifyandAdmin,async (req,res)=>{
     const newProduct = new Product(req.body);
     try{
@@ -14,7 +14,7 @@ router.post("/add",verifyandAdmin,async (req,res)=>{
     }
 
 });
-
+//edit product admin only
 router.put("/update/:id",verifyandAdmin,async (req,res)=>{
     try{
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -28,8 +28,8 @@ router.put("/update/:id",verifyandAdmin,async (req,res)=>{
     }catch(err){
         res.status(500).json(err);
     }
-
 });
+//delete product admin only
 router.delete("/delete/:id",verifyandAdmin,async (req,res)=>{
     try{
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
@@ -39,7 +39,8 @@ router.delete("/delete/:id",verifyandAdmin,async (req,res)=>{
         res.status(500).json(err);
     }
 });
-router.get("/find/:id",verifyandAdmin,async (req,res)=>{
+//find product
+router.get("/find/:id",verifytoken,async (req,res)=>{
     try{
         const foundProduct = await Product.findById(req.params.id);
         res.status(200).json(foundProduct);
@@ -47,7 +48,8 @@ router.get("/find/:id",verifyandAdmin,async (req,res)=>{
         res.status(500).json(err);
     }
 });
-router.get("/findall",verifyandAdmin,async (req,res)=>{
+//find all product
+router.get("/findall",verifytoken,async (req,res)=>{
   const qNew = req.query.new;
   try {
     let products;
@@ -62,8 +64,9 @@ router.get("/findall",verifyandAdmin,async (req,res)=>{
         res.status(500).json(err);
     }
 });
+
 //filter
-//cat
+//catagory
 router.get("/filterps/:seq",verifytoken,async (req,res)=>{
     try{
         const foundProduct = await Product.find({cat:req.params.seq});
