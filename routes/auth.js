@@ -27,7 +27,9 @@ router.post("/register",async(req,res)=>{
     });
     try{
         await newCart.save();
-        await newPend.save(); 
+        await newPend.save();
+        
+
     }catch(err){
         res.status(500).json(err);
     }

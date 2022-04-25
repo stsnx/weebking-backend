@@ -84,4 +84,19 @@ router.get("/findall",verifyandAdmin,async (req,res)=>{
         res.status(500).json(err);
     }
 });
+// find pended
+router.post("/findpended/:userId",verifyandauthen,async (req,res)=>{
+    try{
+        let ownercart = await Pended.findOne({userId:req.params.userId});
+        if(req.body.userId === ownercart.userId&&req.body.userId ===req.params.userId){
+        const foundCart = await Pended.findOne({"userId":req.params.userId});
+        res.status(200).json(foundCart);
+        }
+        else{
+            res.status(403).json("forbidden action");
+        }
+    }catch(err){
+        res.status(500).json(err);
+    }
+});
 module.exports = router
